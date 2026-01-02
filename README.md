@@ -1,237 +1,141 @@
 # AI Stock & Portfolio Risk Analysis Platform
 
-Complete platform for analyzing stock and portfolio risk using deterministic financial models with AI-powered explanations via Groq.
+> **A deterministic financial risk engine enhanced with AI-powered explainability.**
 
-## 🚀 Quick Start Guide
+## 🔍 Project Analysis & Overview
 
-### Prerequisites
-- Python 3.10+ (for backend)
-- Node.js 18+ (for frontend)
-- Groq API Key (free at https://console.groq.com)
+This project is a sophisticated risk analysis platform that bridges the gap between **quantitative financial modeling** and **Generative AI**. Unlike many "AI wrappers" that rely solely on LLMs for calculations (which can be prone to hallucination), this platform uses a **hybrid architecture**:
 
-### 1. Clone/Navigate to Project
-```bash
-cd ai-stock-risk-platform
+1.  **Quantitative Core**: All risk metrics (Beta, Volatility, sharpe ratio, etc.) are calculated using **deterministic implementations** of standard financial formulas. This ensures mathematical accuracy and reproducibility.
+2.  **AI Layer**: Generative AI (Llama 3 via Groq) is used purely for **interpretation and explanation**. It takes the hard numbers and verified news context to explain *why* a risk score is high or low, without ever having to calculate the numbers itself.
+
+### System Architecture
+
+```mermaid
+graph TD
+    User[User / Investor] -->|Interacts| UI[Frontend (React + Vite)]
+    UI -->|API Requests| API[Backend API (FastAPI)]
+    
+    subgraph "Backend System"
+        API -->|Dispatch| RiskEngine[Risk Engine (NumPy)]
+        API -->|Dispatch| NewsRAG[News RAG System]
+        API -->|Dispatch| AIService[AI Service (Groq)]
+        
+        RiskEngine -->|Fetch Data| MarketData[Market Data Provider]
+        NewsRAG -->|Fetch & Verify| NewsSources[News APIs]
+        
+        RiskEngine -->|Metrics| ContextBuilder[Context Builder]
+        NewsRAG -->|Verified News| ContextBuilder
+        
+        ContextBuilder -->|Prompt + Context| AIService
+    end
+    
+    AIService -->|Explanation| UI
+    RiskEngine -->|Raw Metrics| UI
 ```
 
-### 2. Setup Backend
+---
+
+## 🚀 Key Features
+
+### 1. Deterministic Risk Engine `backend/app/risk_engine/`
+The heart of the system is a mathematically rigorous engine that computes:
+-   **Market Risk**: Beta (vs S&P 500), Annualized Volatility, Correlation matrices.
+-   **Financial Risk**: Debt-to-Equity ratios, Interest Coverage, Liquidity analysis.
+-   **Portfolio Metrics**: Weighted risk scores, diversification benefits, and concentration risks.
+
+### 2. AI-Powered Insights `backend/app/ai/`
+The logic in `explanation.py` ensures that AI is used responsibly:
+-   **Context-Aware**: The LLM is fed precise, pre-calculated metrics.
+-   **No Hallucination**: The prompt structure strictly restrains the AI to interpret provided data.
+-   **Groq Acceleration**: Uses Groq's LPU inference for near-instant explanations.
+
+### 3. Verified News RAG `backend/app/news_rag/`
+A Retrieval-Augmented Generation (RAG) system specifically for financial news:
+-   **Multi-Source Verification**: News is cross-referenced across multiple sources.
+-   **Confidence Scoring**: Each news item is assigned a confidence score based on source credibility and corroboration.
+
+---
+
+## 🛠️ Technology Stack
+
+| Component | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Frontend** | React, Vite | High-performance, reactive UI |
+| **Styling** | Tailwind CSS | Modern, responsive design |
+| **Backend** | PostgreSQL, FastAPI | High-concurrency Async IO API |
+| **Computation** | NumPy, Pandas | Efficient numerical analysis |
+| **AI Inference** | Groq (Llama 3) | Low-latency LLM inference |
+| **Data** | yfinance | Market data ingestion |
+
+---
+
+## ⚡ Quick Start Guide
+
+### Prerequisites
+-   Python 3.10+
+-   Node.js 18+
+-   Groq API Key (Get one at [console.groq.com](https://console.groq.com))
+
+### 1. Backend Setup
 
 ```bash
 cd backend
 
+# Create virtual environment
+python -m venv venv
+# Windows: venv\Scripts\activate
+# Mac/Linux: source venv/bin/activate
+
 # Install dependencies
 pip install -r requirements.txt
 
-# Setup environment
+# Configure Environment
 cp .env.example .env
-# Edit .env and add your GROQ_API_KEY
-
-# Run backend server
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# Edit .env and paste your GROQ_API_KEY
 ```
 
-Backend will be available at: http://localhost:8000
+**Run the Server:**
+```bash
+uvicorn app.main:app --reload
+```
+*Server runs at: `http://localhost:8000`*
 
-### 3. Setup Frontend (New Terminal)
+### 2. Frontend Setup
 
 ```bash
 cd frontend
 
-# Install dependencies (if not done)
+# Install dependencies
 npm install
 
-# Run frontend dev server
+# Run Development Server
 npm run dev
 ```
-
-Frontend will be available at: http://localhost:5174
-
-### 4. Access the Application
-
-- **Frontend UI**: http://localhost:5174
-- **Backend API Docs**: http://localhost:8000/docs
-- **Health Check**: http://localhost:8000/api/health
-
-## 📋 Features
-
-### Backend (Python + FastAPI)
-- ✅ **Deterministic Risk Calculation**
-  - Market Risk: Beta, Volatility, Correlation
-  - Financial Risk: Debt-to-Equity, Interest Coverage, Earnings Variability
-  - Portfolio Risk: Correlation Matrix, Concentration, Diversification
-
-- ✅ **News Verification (RAG)**
-  - Multi-source news retrieval
-  - Cross-source verification
-  - Confidence scoring
-
-- ✅ **AI Explanations (Groq)**
-  - Groq Llama 3.1 70B model
-  - Context-aware risk explanations
-  - No AI in risk calculations
-
-### Frontend (React + Vite + Tailwind)
-- ✅ **Stock Analysis**
-  - Autocomplete stock suggestions
-  - Real-time risk analysis
-  - Visual risk breakdown
-
-- ✅ **Portfolio Analysis**
-  - Dynamic holdings management
-  - Weighted risk scores
-  - Diversification metrics
-
-- ✅ **Rich UI**
-  - Color-coded risk levels
-  - Interactive flow diagrams
-  - News confidence badges
-
-## 🔧 Configuration
-
-### Backend `.env`
-```bash
-# Groq API
-GROQ_API_KEY=gsk_your_groq_api_key_here
-GROQ_MODEL=llama-3.1-70b-versatile
-GROQ_TEMPERATURE=0.3
-
-# API Settings
-API_HOST=0.0.0.0
-API_PORT=8000
-
-# Risk Thresholds (customize as needed)
-BETA_HIGH=1.5
-VOLATILITY_HIGH=0.3
-DEBT_EQUITY_HIGH=2.0
-```
-
-### Frontend `.env.local`
-```bash
-VITE_API_URL=http://localhost:8000/api
-VITE_ENV=development
-```
-
-## 🧪 Testing
-
-### Test Backend API
-```bash
-# Health check
-curl http://localhost:8000/api/health
-
-# Analyze AAPL stock
-curl -X POST http://localhost:8000/api/analyze/stock \
-  -H "Content-Type: application/json" \
-  -d '{"symbol": "AAPL"}'
-
-# Analyze portfolio
-curl -X POST http://localhost:8000/api/analyze/portfolio \
-  -H "Content-Type: application/json" \
-  -d '{
-    "holdings": [
-      {"symbol": "AAPL", "weight": 0.5},
-      {"symbol": "MSFT", "weight": 0.5}
-    ]
-  }'
-```
-
-## 📁 Project Structure
-
-```
-ai-stock-risk-platform/
-├── backend/                  # FastAPI backend
-│   ├── app/
-│   │   ├── api/             # API endpoints
-│   │   ├── risk_engine/     # Risk calculations
-│   │   ├── news_rag/        # News verification
-│   │   ├── ai/              # Groq integration
-│   │   ├── data_sources/    # Market data
-│   │   ├── models/          # Pydantic models
-│   │   └── utils/           # Utilities
-│   ├── requirements.txt
-│   └── .env.example
-│
-└── frontend/                 # React frontend
-    ├── src/
-    │   ├── components/      # UI components
-    │   ├── pages/           # Pages
-    │   └── services/        # API client
-    ├── package.json
-    └── vite.config.js
-```
-
-## 🎯 Usage Flow
-
-1. **User**: Opens frontend at http://localhost:5174
-2. **Input**: Enters stock symbol (e.g., AAPL) or portfolio
-3. **Frontend**: Sends POST to `/api/analyze/stock` or `/api/analyze/portfolio`
-4. **Backend**: 
-   - Fetches market data (yfinance)
-   - Calculates risk metrics (deterministic)
-   - Retrieves & verifies news
-   - Generates explanation (Groq AI)
-5. **Response**: Returns risk score + breakdown + news + explanation
-6. **Display**: Frontend shows results with visualizations
-
-## 🔐 Security Notes
-
-- Never commit `.env` files
-- Use environment variables for API keys
-- In production, use proper CORS origins
-- Add rate limiting for API endpoints
-- Implement authentication if needed
-
-## 🚨 Troubleshooting
-
-### Backend Issues
-
-**numpy install fails on Windows:**
-```bash
-# Use updated requirements.txt with numpy>=1.24.0
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-**Groq API errors:**
-- Check API key in `.env`
-- Verify internet connection
-- Check Groq API status
-
-**Port 8000 already in use:**
-```bash
-# Change port in .env
-API_PORT=8001
-
-# Or kill the process using port 8000
-```
-
-### Frontend Issues
-
-**Port 5174 in use:**
-- Vite will automatically try next available port
-
-**API connection refused:**
-- Ensure backend is running on port 8000
-- Check `VITE_API_URL` in `.env.local`
-
-## 📚 Documentation
-
-- **Backend API**: http://localhost:8000/docs (Swagger UI)
-- **Backend ReDoc**: http://localhost:8000/redoc
-- **Groq Docs**: https://console.groq.com/docs
-
-## 🤝 Contributing
-
-This is a production-thinking implementation with:
-- Functional programming (no classes)
-- Type hints throughout
-- Comprehensive error handling
-- Logging and caching
-- Validation with Pydantic
-
-## 📄 License
-
-This project is for educational and demonstration purposes.
+*App runs at: `http://localhost:5174`*
 
 ---
 
-**Note**: This system provides decision support, not financial advice. Always consult with qualified financial advisors before making investment decisions.
+## 📂 Project Structure
+
+```
+ai-stock-risk-platform/
+├── backend/
+│   ├── app/
+│   │   ├── main.py            # Application entry point
+│   │   ├── risk_engine/       # Mathematical core (NumPy)
+│   │   ├── ai/                # Groq integration & Prompts
+│   │   ├── news_rag/          # News verification logic
+│   │   └── api/               # REST Endpoints
+│   └── requirements.txt
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/        # Reusable UI components
+│   │   ├── pages/             # Main application views
+│   │   └── services/          # API integration
+│   └── vite.config.js
+```
+
+## ⚠️ Disclaimer
+This tool is for educational and research purposes only. The risk metrics are based on historical data and standard financial models, and the AI interpretations are generated by a Large Language Model. **This is not financial advice.** Always conduct your own due diligence.
