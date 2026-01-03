@@ -25,6 +25,11 @@ def calculate_beta(symbol: str, index: str = "^GSPC", period: int = 252) -> floa
         stock_prices = get_stock_prices(symbol, period)
         index_prices = get_index_prices(index, period)
         
+        # Ensure same length
+        min_len = min(len(stock_prices), len(index_prices))
+        stock_prices = stock_prices[-min_len:]
+        index_prices = index_prices[-min_len:]
+        
         # Calculate returns
         stock_returns = np.diff(stock_prices) / stock_prices[:-1]
         index_returns = np.diff(index_prices) / index_prices[:-1]
@@ -85,6 +90,11 @@ def calculate_correlation(symbol: str, index: str = "^GSPC", period: int = 252) 
     try:
         stock_prices = get_stock_prices(symbol, period)
         index_prices = get_index_prices(index, period)
+        
+        # Ensure same length
+        min_len = min(len(stock_prices), len(index_prices))
+        stock_prices = stock_prices[-min_len:]
+        index_prices = index_prices[-min_len:]
         
         stock_returns = np.diff(stock_prices) / stock_prices[:-1]
         index_returns = np.diff(index_prices) / index_prices[:-1]

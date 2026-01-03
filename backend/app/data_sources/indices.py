@@ -29,9 +29,9 @@ def get_index_prices(index_symbol: str = "^GSPC", period_days: int = 252) -> np.
     try:
         logger.info(f"Fetching index prices for {index_symbol}")
         # Try importing the session/raw fetcher
-        from app.data_sources.market_data import get_yf_session, fetch_prices_raw
+        from app.data_sources.market_data import get_session, fetch_prices_raw
         
-        index = yf.Ticker(index_symbol, session=get_yf_session())
+        index = yf.Ticker(index_symbol, session=get_session())
         hist = index.history(period=f"{period_days}d")
         
         if not hist.empty:
@@ -44,14 +44,18 @@ def get_index_prices(index_symbol: str = "^GSPC", period_days: int = 252) -> np.
 
     # Fallback to raw fetch
     try:
-        from app.data_sources.market_data import fetch_prices_raw
+        from app.data_sources.market_data import fetch_prices_raw, generate_fallback_prices
         raw_prices = fetch_prices_raw(index_symbol, period_days)
         if raw_prices is not None and len(raw_prices) > 0:
             logger.info(f"Raw fallback successful for {index_symbol}")
             set_cache(cache_key, raw_prices, ttl_seconds=3600)
             return raw_prices
-    except Exception:
-        pass
-
-    logger.error(f"All methods failed for index {index_symbol}")
-    return np.array([4000.0] * period_days)
+            
+        # If raw fetch also fails, return generated random walk
+        logger.warning(f"Generating fallback index history for {index_symbol}")
+        return generate_fallback_prices(index_symbol, period_days)
+        
+    except Exception as e:
+        logger.error(f"Error in index fallback: {e}")
+        # Absolute last resort
+        return np.array([4000.0] * period_days)

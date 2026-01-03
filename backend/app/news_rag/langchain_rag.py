@@ -27,9 +27,13 @@ def create_news_verification_chain():
         return None
     
     try:
+        model_name = os.getenv("GROQ_MODEL", "groq/compound")
+        if "groq/compound" in model_name:
+            model_name = "groq/compound"
+            
         llm = ChatGroq(
             groq_api_key=api_key,
-            model_name=os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile"),
+            model_name=model_name,
             temperature=0.1  # Low temperature for factual verification
         )
         

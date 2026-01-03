@@ -36,8 +36,12 @@ def generate_with_groq(prompt: str) -> str:
         
         logger.info("Generating explanation with Groq")
         
+        model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+        if "llama-3.1-70b-versatile" in model_name:
+            model_name = "llama-3.3-70b-versatile"
+            
         response = client.chat.completions.create(
-            model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+            model=model_name,
             messages=[
                 {
                     "role": "system",
